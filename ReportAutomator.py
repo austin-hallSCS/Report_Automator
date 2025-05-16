@@ -5,12 +5,7 @@ Takes an SCCM report as a .xlsx file, removes all the unneccessary columns, adds
 CURRENTLY WORKING ON:
 
 TO DO:
--Collecting errors from users + Spot removing
--Possibly adding a way to update Dell key within the script
-
-Lower level (may not even get to these)
--Get Lenovo warranties
-
+-Taking out playwright/ report automatic downloading
 
 """
 # You know the drill, import the necessary modules
@@ -25,16 +20,8 @@ try:
         #Clear the console
         os.system('cls')
 
-        # Get user input to select which school to run a report for.
-        while True:
-            userInput = input("Enter a school (HHS, WMS, etc...): ").upper()
-            if not Utils.check_School_Abbreviation(userInput):
-                print("Invalid school abbreviation. Please double check your spelling and try again.")
-            else:
-                break
-
-        # Download report file from MCM report server, turn it into a dataframe
-        report = Report(userInput)
+        # Have user select report file, turn it into a dataframe
+        report = Report()
 
         # Add warranty dates to the original report dataframe
         print("Getting warranty info...")

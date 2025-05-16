@@ -2,57 +2,13 @@ import pandas as pd
 import os
 import time
 from datetime import datetime as dt, timedelta
+from filepath import FilePath
 import reportAutomatorUtils as Utils
 class Report:
-    def __init__(self, schoolAbbreviation):
-        self.inFile = self.get_MCM_Report(schoolAbbreviation)
-        self.dataFrame = self.prepare_Spreadsheet(self.inFile)
+    def __init__(self):
+        self.inFile = FilePath(fileIsOut=False, )
+        self.dataFrame = self.prepare_Spreadsheet(self.inFile.filePath)
         self.key = pd.read_csv('Dell_Key.csv', index_col=0, header=None, usecols=[0, 1])[1]
-
-    # Uses Playwright to download the report file from Configuration Manager Report Server
-    @staticmethod
-    def get_MCM_Report(schoolAbbreviation):
-        from playwright.sync_api import Playwright, sync_playwright, expect
-
-        schoolCodes = {'BBE': '135', 'BES': '141', 'BHS': '148', 'BPE': '171', 'CRE': '186', 'EBW': '197', 'EMS': '204', 'GBE': '217', 'GES': '226', 'GHS': '232',
-                       'GWE': '246', 'HBW': '255', 'HES': '263', 'HHS': '269', 'HMS': '285', 'ILE': '292', 'JAE': '304', 'JWW': '311', 'KDDC': '317', 'LCE': '342',
-                       'LCH': '344', 'LCM': '350', 'LPE': '353', 'MCE': '362', 'MES': '369', 'MHM': '376', 'MTC': '388', 'NBE': '391', 'NSE': '402', 'OES': '408',
-                       'PEM': '434', 'PGE': '443','PHS': '451', 'PWM': '474', 'RSM': '485', 'RTF': '491', 'SCE': '495', 'SCH': '501', 'SCM': '517', 'SMS': '531',
-                       'TWH': '572', 'UES': '580', 'VSE': '588', 'WBE': '594', 'WES': '600', 'WFE': '609', 'WHE': '615', 'WHH': '621', 'WHM': '632', 'WHS': '640', 'WMS': '668'}
-        filePath = f"{Utils.TEMPDIR}/{schoolAbbreviation}-ALL-COMPUTERS_Report.xlsx"   
-
-        def run(playwright: Playwright, code) -> None:
-            browser = playwright.chromium.launch(headless=True)
-            context = browser.new_context(accept_downloads=True)
-            page = context.new_page()
-            page.goto("http://scs-mcm-01/ReportServer/Pages/ReportViewer.aspx?%2fConfigMgr_MCM%2fAsset+Intelligence%2f__Hardware+09A+-+Search+for+computers&rs:Command=Render")
-            page.get_by_role("cell", name="<Select a Value>", exact=True).click()
-            page.get_by_label("Collection").select_option(code)
-            page.get_by_role("button", name="View Report").click()
-            page.get_by_role("button", name="Export drop down menu").click()
-            with page.expect_download() as download_info:
-                with page.expect_popup() as page1_info:
-                    page.get_by_role("link", name="Excel").click()
-                page1 = page1_info.value
-            download = download_info.value
-            download.save_as(filePath)
-            page1.close()
-
-            # ---------------------
-            context.close()
-            browser.close()
-
-        if schoolAbbreviation not in schoolCodes:
-            raise KeyError("invalid school abbreviation")
-        
-        print("Getting report file from MCM Report Server...")
-        with sync_playwright() as playwright:
-            run(playwright, schoolCodes[schoolAbbreviation])
-        
-        if not os.path.exists(filePath):
-            raise FileNotFoundError("downloaded report file not found")
-        
-        return filePath
 
     # Loads excel file as a dataframe and formats the data.
     @staticmethod
