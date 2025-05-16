@@ -1,0 +1,9 @@
+/.venv
+/build
+/dist
+/test.py
+/test_temp
+/Thumbs.db
+/__pycache__
+/reportautomator.spec
+/reportautomator
